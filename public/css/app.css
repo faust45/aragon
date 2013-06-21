@@ -1,0 +1,11 @@
+
+#board {
+    float: center;
+    text-align: center;
+}
+
+#board canvas {
+    display: block;
+    margin-left: auto;
+    margin-right: auto 
+}
