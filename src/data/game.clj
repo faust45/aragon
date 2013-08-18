@@ -67,7 +67,7 @@
   `(def ~fname
      (apply juxt (mfun (map #(comp ~@filters %) (list ~@lines)) (list ~@front-back)))))
 
-(deff p 
+(deff p
   (d1 d2) (front) (attack 1))
 
 (deff q
@@ -82,55 +82,51 @@
 (deff b
   (d1 d2) (front back) (attack 8))
 
-(defn prepare-fig
+(defn expand-fig
   [[xy color fig]]
   (eval (list '-> xy (symbol (str "data.game/" color)) (symbol (str "data.game/" fig)))))
 
-(defn any?
-  [v coll]
-  ((comp not empty?) (filter (partial = v) coll)))
-
-(defn find-d
-  [lines xy]
-  (first (filter (fn [l] (if (any? xy l) l)) lines)))
+(defn line-with 
+  [xy lines]
+  (first (filter #(any? xy %) lines)))
 
 (defn intersects-with
-  [[xy _ _]]
-  (fn [f]
-    (if (not (= (first f) xy))
-      (find-d (prepare-fig f) xy))))
+  [[kxy _ _ :as king] [fxy _ _ :as fig]]
+    (println "debug: " fig)
+    (if (not (= fxy kxy))
+      (line-with kxy (expand-fig fig))))
 
 (defn find-king 
   [p]
   (first (filter (fn [[_ _ f]] (= f "k")) p)))
 
 (defn oposite-figs 
-  [p [_ color _]]
-  (filter (fn [[_ c _]] (not (= c color))) p))
+  [[_ color _] position]
+  (filter (fn [[_ c _]] (not (= c color))) position))
 
-(defn game 
-  [p king]
-  (map (intersects-with king) (oposite-figs p king)))
+(defn attack-lines
+  [king figs]
+  (map (partial intersects-with king) figs))
 
 (defn between
   [[xy _ _] line]
   (take-while #(not (= xy %)) line))
 
-(defn game2
-  [p king d]
-  (map #(between king %) d))
+(defn attack-cells
+  [king attack-lines]
+  (map #(between king %) attack-lines))
 
 (defn collect-xy
   [p]
   (map first p))
 
-(defn blank-on-board 
-  [p line]
-  (empty? (clojure.set/intersection (set (collect-xy p)) (set line))))
+(defn direct-attack? 
+  [position line]
+  (empty? (clojure.set/intersection (set (collect-xy position)) (set line))))
 
-(defn game3
-  [p d]
-  (filter #(blank-on-board p %) d))
+(defn direct-attack-lines
+  [position lines]
+  (filter #(direct-attack? position %) lines))
 
 (defn to-xy 
   [xy]
@@ -152,11 +148,12 @@
 
 (defn analyze
   [pos]
-    (println pos)
-  (let [p (to-coords pos)
-        king (find-king p)
-        d  (game p king)
-        d1 (game2 p king d)
-        d2 (game3 p d1)]
+  (println "Analyse position: " pos)
+  (let [position (to-coords pos)
+        king     (find-king position)
+        lines    (attack-lines king (oposite-figs king position))
+        d1       (attack-cells king lines)
+        d2       (direct-attack-lines position d1)]
+    (println "debug: " d1)
     (map (partial map to-js) (drop-nil d2))))
 

@@ -3,6 +3,10 @@
             [clojure.data.json :as json])
   (:use [clojure.string :only (join split)]))
 
+(defn any?
+  [v coll]
+  ((comp not empty?) (filter (partial = v) coll)))
+
 (defn mfun
   [alist blist]
   (for [a alist b blist]
