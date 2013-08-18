@@ -3,6 +3,11 @@
             [clojure.data.json :as json])
   (:use [clojure.string :only (join split)]))
 
+(defn mfun
+  [alist blist]
+  (for [a alist b blist]
+    (comp a b)))
+
 (defn abs 
   [n]
   (cond
@@ -31,12 +36,12 @@
 (defn send-file [path] 
   (resp/file-response path {:root "public/"}))
 
-(defn wrap-reload
-  [handler]
-  (fn [req]
-    (require 'data.core :reload)
-    (require 'data.game :reload)
-    (handler req)))
+;(defn wrap-reload
+;  [handler]
+;  (fn [req]
+;    (require 'data.core :reload)
+;    (require 'data.game :reload)
+;    (handler req)))
 
 (defn is-json?
   [req]

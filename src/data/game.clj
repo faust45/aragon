@@ -62,11 +62,6 @@
 (def front
   identity)
 
-(defn mfun
-  [alist blist]
-  (for [a alist b blist]
-    (comp a b)))
-
 (defmacro deff
   [fname lines front-back & filters]
   `(def ~fname
@@ -87,10 +82,9 @@
 (deff b
   (d1 d2) (front back) (attack 8))
 
-(defn ef
+(defn prepare-fig
   [[xy color fig]]
-  (let [l (list '-> xy (symbol (str "data.game/" color)) (symbol (str "data.game/" fig)))]
-    (eval l)))
+  (eval (list '-> xy (symbol (str "data.game/" color)) (symbol (str "data.game/" fig)))))
 
 (defn any?
   [v coll]
@@ -104,7 +98,7 @@
   [[xy _ _]]
   (fn [f]
     (if (not (= (first f) xy))
-      (find-d (ef f) xy))))
+      (find-d (prepare-fig f) xy))))
 
 (defn find-king 
   [p]

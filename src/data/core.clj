@@ -10,8 +10,8 @@
         [compojure.core]
         data.utils
         ring.middleware.multipart-params
-        ring.middleware.params))
-
+        ring.middleware.params
+        ring.middleware.resource ring.middleware.file-info ring.middleware.file ring.middleware.reload))
 
 (defn think 
   [position]
@@ -22,8 +22,8 @@
           (GET "/public/*" {{resource-path :*} :route-params} (send-file resource-path))))
 
 (def app
-  (-> 
-      my-routes
+  (-> my-routes
+      wrap-reload
       wrap-parse-json
       wrap-multipart-params))
     
