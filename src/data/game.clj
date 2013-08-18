@@ -1,53 +1,10 @@
 (ns data.game
   (use data.utils))
 
-(defn mark
-  [mark items]
-  (cons mark items))
-
-(defn as-attack
-  [n]
-  (comp (partial cons 'attack) (partial take n)))
-
-(defn as-move
-  [n]
-  (comp (partial cons 'move) (partial take n)))
-
-(def attack-first 
-   (comp as-attack list first))
-
-;(defprotocol Line
-;  (k [this] this)
-;  (p [this] this))
-;
-;(deftype LineV [line]
-;  Line
-;  (k [this]
-;      (juxt (comp attack-first line front) (comp attack-first line back)))
-;  (p [this]
-;    (comp as-move list first line front)))
-;
-;(deftype LineH [line]
-;  Line
-;  )
-;
-;(deftype LineD [line]
-;  clojure.lang.IFn
-;    (invoke [this n] (line n))
-;  Line
-;    (k [this] 
-;      (comp (partial mark 'attack) (partial take 1) line front))
-;    (p [this] 
-;      (comp (partial mark 'attack) (partial take 1) line front)))
-
-
 (def oposite (partial map -))
 
 (def black oposite)
 (def white identity)
-
-(def front identity)
-(def back oposite)
 
 (defn in-bounds?
   [n]
@@ -81,7 +38,6 @@
 
 (def as-abs (partial map abs-xy))
 
-
 (def cells-seq #(comp rest only-in-bounds as-abs (partial iterate %)))
 
 (def h-seq (cells-seq inc-x))
@@ -96,108 +52,117 @@
 (def d2-seq (cells-seq (comp inc-x inc-y)))
 (def d2 d2-seq)
 
+(defn attack
+  [n]
+  #(take n %))
 
-(def lines (list v h d1 d2))
+(def back 
+  oposite)
 
-(def front-and-back
-  #(juxt (comp % front) (comp % back)))
+(def front
+  identity)
 
-;(defmacro def-fig
-;  [name & args]
-;  `(let [a# (reverse '~@args)
-;         d# (first a#)
-;         [front# back#] (reverse (rest a#))
-;         [mark# & lines#] d#
-;         expr# (first lines#)]
-;     (def ~name expr#)))
+(defn mfun
+  [alist blist]
+  (for [a alist b blist]
+    (comp a b)))
 
-;(def-fig q
-;  (front back
-;    (as-attack 8 d1 d2 v h)))
-;
-;(def-fig k
-;  (front back
-;    (as-attack 1 d1 d2 v h)))
-;
+(defmacro deff
+  [fname lines front-back & filters]
+  `(def ~fname
+     (apply juxt (mfun (map #(comp ~@filters %) (list ~@lines)) (list ~@front-back)))))
 
-(defmacro def-fig
-  [name & args]
-   `(def ~name `(list first args)))
+(deff p 
+  (d1 d2) (front) (attack 1))
 
+(deff q
+  (d1 d2 v h) (front back) (attack 8))
 
-(def-fig p
-  (front
-    ((attack 1) d1 d2)))
-    
+(deff k
+  (d1 d2 v h) (front back) (attack 1))
 
-(defn df []
-  (macroexpand-1 '(def-fig p (front ((attack 1) d1 d2)))))
+(deff r
+  (v h) (front back) (attack 8))
 
-;(def p
-;  (juxt (comp (as-attack 1) d1 front) (comp (as-attack 1) d2 front) (comp (as-move 1) v front)))
+(deff b
+  (d1 d2) (front back) (attack 8))
 
-
-;(def pos '((list [1 1] black k) (list [1 3] white k) (list [2 8] white q)))
-(def pos (list '([2 7] white k) '([2 3] black p)))
-
-
-(def only-xy (partial map first))
-
-(defn include?
-  [value coll]
-  (some (partial = value) coll))
-
-(defn x-pos?
-  [xy pos]
-  (->> pos only-xy (include? xy)))
-
-(defn x
-  [pos xy]
-  (if (x-pos? xy pos)
-    (list xy 'x)
-    xy))
-
-(defn x-position
-  [[line-type front back] pos]
-  (let [f (partial map (partial x pos))]
-    (list line-type (f front) (f back))))
-
-(defn base-calc
-  [[xy color fig] line]
-  (-> xy color (fig line)))
-
-(defn expand
-  [fig]
-  (let [fig-fun (map eval fig)]
-    (cons fig (map (partial base-calc fig-fun) lines))))
-
-(def rr
-  (partial map expand))
-
-(defn attack?
-  [[mark _]] 
-  (= mark 'attack))
-
-(defn only-attack
-  [[line-type & lines]]
-  (cons line-type (filter attack? lines)))
-
-(defn only-with
-  [[line-type & lines] xy]
-  (filter (partial include? xy) lines))
-
-;(defn select-attack
-  ;[xy [fig & lines]]
-  ;(-> line only-attack (only-with xy)))
-
-;(x (fig line) (fig1 line)) xy ->
-;(attack? f f1)
-
-;(defn ee
-;  [[fig & lines]]
-;  (map (comp (partial ) attack-lines) lines))
-
-(defn is-check?
+(defn ef
   [[xy color fig]]
-  (filter (partial attack? xy) (rr pos)))
+  (let [l (list '-> xy (symbol (str "data.game/" color)) (symbol (str "data.game/" fig)))]
+    (eval l)))
+
+(defn any?
+  [v coll]
+  ((comp not empty?) (filter (partial = v) coll)))
+
+(defn find-d
+  [lines xy]
+  (first (filter (fn [l] (if (any? xy l) l)) lines)))
+
+(defn intersects-with
+  [[xy _ _]]
+  (fn [f]
+    (if (not (= (first f) xy))
+      (find-d (ef f) xy))))
+
+(defn find-king 
+  [p]
+  (first (filter (fn [[_ _ f]] (= f "k")) p)))
+
+(defn oposite-figs 
+  [p [_ color _]]
+  (filter (fn [[_ c _]] (not (= c color))) p))
+
+(defn game 
+  [p king]
+  (map (intersects-with king) (oposite-figs p king)))
+
+(defn between
+  [[xy _ _] line]
+  (take-while #(not (= xy %)) line))
+
+(defn game2
+  [p king d]
+  (map #(between king %) d))
+
+(defn collect-xy
+  [p]
+  (map first p))
+
+(defn blank-on-board 
+  [p line]
+  (empty? (clojure.set/intersection (set (collect-xy p)) (set line))))
+
+(defn game3
+  [p d]
+  (filter #(blank-on-board p %) d))
+
+(defn to-xy 
+  [xy]
+  (let [x (-> xy first str)
+        y (-> xy last str)]
+    [(Integer. x) (Integer. y)]))
+
+(defn coords
+  [[color fig xy]]
+  (list (to-xy (str xy)) (if (= "w" (str color)) 'white 'black) fig))
+
+(defn to-coords
+  [pos]
+  (map coords pos))
+
+(defn to-js
+  [xy]
+  (apply str xy))
+
+(defn analyze
+  [pos]
+    (println pos)
+  (let [p (to-coords pos)
+        king (find-king p)
+        d  (game p king)
+        d1 (game2 p king d)
+        d2 (game3 p d1)]
+    (map (partial map to-js) (drop-nil d2))))
 

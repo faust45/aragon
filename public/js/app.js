@@ -30,7 +30,32 @@ function sendPosition(pos) {
       contentType: 'application/json',
       data: JSON.stringify(pos),
       success: function(data, status) {
-        console.log(data);
+        var data = eval("(" + data + ")");
+
+        $('.yellow').removeClass('yellow');
+
+        for(var i in data) {
+            var coll = data[i];
+            //if(coll[0]) {
+            //console.log(coll, coll[0]);
+            //var start = $('[data-square="'+coll[0]+'"]');
+            //var end = $('[data-square="'+coll[coll.length - 1]+'"]');
+            //console.log(start.position(), start, end);
+            // 
+            //var fromPoint = {},
+            //    toPoint = {};
+
+            //fromPoint.x = start.offset().left;
+            //fromPoint.y = start.offset().top;
+            //toPoint.x = end.offset().left;
+            //toPoint.y = end.offset().top;
+            //$.line(fromPoint, toPoint); 
+            //}
+
+            for(var i in coll) {
+                $('[data-square='+coll[i]+']').addClass('yellow');
+            }
+        }
       }
   });
 }

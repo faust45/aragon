@@ -59,3 +59,8 @@ body
 {
   padding-left: 10px;
 }
+
+.yellow {
+  border-style: solid;
+  border-color: yellow !important;
+}

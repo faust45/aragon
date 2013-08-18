@@ -22,10 +22,10 @@
           (GET "/public/*" {{resource-path :*} :route-params} (send-file resource-path))))
 
 (def app
-  (-> my-routes
+  (-> 
+      my-routes
       wrap-parse-json
-      wrap-multipart-params
-      wrap-reload))
+      wrap-multipart-params))
     
 (defn main [& args]
   (run-jetty #'app {:port 8080}))

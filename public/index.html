@@ -12,6 +12,7 @@
         <script src="/public/js/handlebars-1.0.rc.1.js"> </script>
         <script src="/public/js/app.js"></script>
         <script src="/public/js/utils.js"></script>
+        <script src="/public/js/jquery.domline.js"></script>
     </head>
 
     <body>
@@ -30,7 +31,7 @@
         <table class="board" cellspacing="0" cellpadding=0>
             {{#each "87654321"}}
             <tr>
-              {{#stripes "abcdefgh" this  "dark" "light"}}
+              {{#stripes "12345678" this  "dark" "light"}}
                 <td data-square="{{square}}" class="{{stripeClass}} square ui-droppable"></td>
               {{/stripes}}
             </tr>
