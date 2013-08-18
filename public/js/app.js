@@ -60,20 +60,6 @@ function sendPosition(pos) {
   });
 }
 
-function makeMove(fig, from, to) {
-    var move = fig + " " + from + " " + to;
-
-    $.ajax({
-      type: 'POST',
-      url: '/move',
-      contentType: 'application/chess',
-      data: move,
-      success: function(data, status) {
-        console.log(data);
-      }
-    });
-}
-
 function getPosition(fn) {
   $.get('/current_position', function(data) {
       console.log('in debug ', data);

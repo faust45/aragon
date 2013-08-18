@@ -128,29 +128,10 @@
   [position lines]
   (filter #(direct-attack? position %) lines))
 
-(defn to-xy 
-  [xy]
-  (let [x (-> xy first str)
-        y (-> xy last str)]
-    [(Integer. x) (Integer. y)]))
-
-(defn coords
-  [[color fig xy]]
-  (list (to-xy (str xy)) (if (= "w" (str color)) 'white 'black) fig))
-
-(defn to-coords
-  [pos]
-  (map coords pos))
-
-(defn to-js
-  [xy]
-  (apply str xy))
-
 (defn analyze
-  [pos]
-  (println "Analyse position: " pos)
-  (let [position (to-coords pos)
-        king     (find-king position)
+  [position]
+  (println "Analyse position: " position)
+  (let [king     (find-king position)
         lines    (attack-lines king (oposite-figs king position))
         d1       (attack-cells king lines)
         d2       (direct-attack-lines position d1)]

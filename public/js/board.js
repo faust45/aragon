@@ -9,11 +9,12 @@ Board.getPosition = function() {
       var td = $($(this).parent()),
           figName  = $(this).data('name'),
           color    = $(this).data('color'),
-          position = td.data('square');
+          xy       = td.data('square') + '';
+          position = [parseInt(xy.charAt(0)), parseInt(xy.charAt(1))];
 
-          color = (color == "d" ? "b" : "w");
+          color = (color == "d" ? "black" : "white");
 
-      return [[color, figName, position]];
+      return [[position, color, figName]];
   });
 
   return pos.toArray();
